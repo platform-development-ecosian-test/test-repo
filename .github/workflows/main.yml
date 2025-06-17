@@ -87,11 +87,24 @@ jobs:
         uses: docker/setup-buildx-action@v3
       - name: Log in to NCP Container Registry
         run: echo "${{ secrets.NCP_PASSWORD }}" | docker login -u "${{ secrets.NCP_USERNAME }}" --password-stdin "${{ secrets.NCP_REGISTRY }}"
-      - name: Build Docker image
+        
+      - name: Build and Tag Docker image
         run: |
           docker build -t $PROJECT_NAME:$IMAGE_TAG .
           docker tag $PROJECT_NAME:$IMAGE_TAG $NCP_REGISTRY/$PROJECT_NAME:$IMAGE_TAG
+
+          # 추가: 버전 태그가 있는 경우 latest도 같이 태그
+          if [[ "$IMAGE_TAG" != "latest" ]]; then
+            docker tag $PROJECT_NAME:$IMAGE_TAG $PROJECT_NAME:latest
+            docker tag $PROJECT_NAME:$IMAGE_TAG $NCP_REGISTRY/$PROJECT_NAME:latest
+          fi
+
       - name: Push Docker image
-        run: docker push $NCP_REGISTRY/$PROJECT_NAME:$IMAGE_TAG
+        run: |
+          docker push $NCP_REGISTRY/$PROJECT_NAME:$IMAGE_TAG
+          if [[ "$IMAGE_TAG" != "latest" ]]; then
+            docker push $NCP_REGISTRY/$PROJECT_NAME:latest
+          fi
+
       - name: Logout
         run: docker logout $NCP_REGISTRY
