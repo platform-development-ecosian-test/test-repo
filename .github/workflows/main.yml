@@ -69,7 +69,7 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
-        continue-on-error: true
+        continue-on-error: true 
 
   dockerize:
     name: 🐳 Dockerize & Push
